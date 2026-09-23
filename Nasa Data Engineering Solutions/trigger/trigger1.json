@@ -1,0 +1,24 @@
+{
+	"name": "trigger1",
+	"properties": {
+		"annotations": [],
+		"runtimeState": "Stopped",
+		"pipelines": [
+			{
+				"pipelineReference": {
+					"referenceName": "5_execute_pipelines",
+					"type": "PipelineReference"
+				}
+			}
+		],
+		"type": "BlobEventsTrigger",
+		"typeProperties": {
+			"blobPathBeginsWith": "/source/blobs/csvfiles/",
+			"ignoreEmptyBlobs": true,
+			"scope": "/subscriptions/4901a252-b376-4836-af37-b053474e3900/resourceGroups/adf-datalake-1/providers/Microsoft.Storage/storageAccounts/vivdatalake1",
+			"events": [
+				"Microsoft.Storage.BlobCreated"
+			]
+		}
+	}
+}
