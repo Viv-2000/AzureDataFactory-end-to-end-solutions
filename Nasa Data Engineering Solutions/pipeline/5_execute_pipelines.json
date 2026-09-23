@@ -1,0 +1,49 @@
+{
+	"name": "5_execute_pipelines",
+	"properties": {
+		"activities": [
+			{
+				"name": "Execute Pipeline 3 and 4",
+				"type": "ExecutePipeline",
+				"dependsOn": [],
+				"policy": {
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "3_for_if_copy",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": false
+				}
+			},
+			{
+				"name": "Execute Pipeline1",
+				"type": "ExecutePipeline",
+				"dependsOn": [
+					{
+						"activity": "Execute Pipeline 3 and 4",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "4_dataflow_dest_to_reporting",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": false
+				}
+			}
+		],
+		"annotations": [],
+		"lastPublishTime": "2026-09-23T07:29:22Z"
+	},
+	"type": "Microsoft.DataFactory/factories/pipelines"
+}

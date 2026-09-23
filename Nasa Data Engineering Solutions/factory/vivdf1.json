@@ -1,0 +1,15 @@
+{
+	"name": "vivdf1",
+	"properties": {
+		"trustModeClaimForMi": {
+			"value": "Disabled",
+			"editable": true
+		}
+	},
+	"location": "australiasoutheast",
+	"identity": {
+		"type": "SystemAssigned",
+		"principalId": "52426abc-ea56-45e9-8a4f-3fedc7eb27da",
+		"tenantId": "02aaa204-f5a1-472b-910c-9454cdd999a1"
+	}
+}
