@@ -19,7 +19,7 @@
 			"type": "string",
 			"defaultValue": "https://vivdatalake1.dfs.core.windows.net/"
 		},
-		"trigger1_properties_typeProperties_scope": {
+		"mantrigger_storagebased_properties_typeProperties_scope": {
 			"type": "string",
 			"defaultValue": "/subscriptions/4901a252-b376-4836-af37-b053474e3900/resourceGroups/adf-datalake-1/providers/Microsoft.Storage/storageAccounts/vivdatalake1"
 		},
@@ -77,8 +77,8 @@
 					"factoryName": {
 						"value": "[parameters('factoryName')]"
 					},
-					"trigger1_properties_typeProperties_scope": {
-						"value": "[parameters('trigger1_properties_typeProperties_scope')]"
+					"mantrigger_storagebased_properties_typeProperties_scope": {
+						"value": "[parameters('mantrigger_storagebased_properties_typeProperties_scope')]"
 					}
 				}
 			},

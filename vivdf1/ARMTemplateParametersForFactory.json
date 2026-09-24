@@ -14,7 +14,7 @@
 		"linkedservicedl_properties_typeProperties_url": {
 			"value": "https://vivdatalake1.dfs.core.windows.net/"
 		},
-		"trigger1_properties_typeProperties_scope": {
+		"mantrigger_storagebased_properties_typeProperties_scope": {
 			"value": "/subscriptions/4901a252-b376-4836-af37-b053474e3900/resourceGroups/adf-datalake-1/providers/Microsoft.Storage/storageAccounts/vivdatalake1"
 		}
 	}
