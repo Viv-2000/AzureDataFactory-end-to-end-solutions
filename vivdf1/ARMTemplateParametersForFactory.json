@@ -1,0 +1,21 @@
+{
+	"$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentParameters.json#",
+	"contentVersion": "1.0.0.0",
+	"parameters": {
+		"factoryName": {
+			"value": "vivdf1"
+		},
+		"linkedservicedl_accountKey": {
+			"value": ""
+		},
+		"gitlinkedservice_properties_typeProperties_url": {
+			"value": "https://raw.githubusercontent.com"
+		},
+		"linkedservicedl_properties_typeProperties_url": {
+			"value": "https://vivdatalake1.dfs.core.windows.net/"
+		},
+		"trigger1_properties_typeProperties_scope": {
+			"value": "/subscriptions/4901a252-b376-4836-af37-b053474e3900/resourceGroups/adf-datalake-1/providers/Microsoft.Storage/storageAccounts/vivdatalake1"
+		}
+	}
+}

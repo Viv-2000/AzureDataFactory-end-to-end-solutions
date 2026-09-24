@@ -1,0 +1,1195 @@
+{
+	"$schema": "http://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
+	"contentVersion": "1.0.0.0",
+	"parameters": {
+		"factoryName": {
+			"type": "string",
+			"metadata": "Data Factory name",
+			"defaultValue": "vivdf1"
+		},
+		"linkedservicedl_accountKey": {
+			"type": "secureString",
+			"metadata": "Secure string for 'accountKey' of 'linkedservicedl'"
+		},
+		"gitlinkedservice_properties_typeProperties_url": {
+			"type": "string",
+			"defaultValue": "https://raw.githubusercontent.com"
+		},
+		"linkedservicedl_properties_typeProperties_url": {
+			"type": "string",
+			"defaultValue": "https://vivdatalake1.dfs.core.windows.net/"
+		}
+	},
+	"variables": {
+		"factoryId": "[concat('Microsoft.DataFactory/factories/', parameters('factoryName'))]"
+	},
+	"resources": [
+		{
+			"name": "[concat(parameters('factoryName'), '/gitlinkedservice')]",
+			"type": "Microsoft.DataFactory/factories/linkedServices",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"annotations": [],
+				"type": "HttpServer",
+				"typeProperties": {
+					"url": "[parameters('gitlinkedservice_properties_typeProperties_url')]",
+					"enableServerCertificateValidation": true,
+					"authenticationType": "Anonymous"
+				}
+			},
+			"dependsOn": []
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/linkedservicedl')]",
+			"type": "Microsoft.DataFactory/factories/linkedServices",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"annotations": [],
+				"type": "AzureBlobFS",
+				"typeProperties": {
+					"url": "[parameters('linkedservicedl_properties_typeProperties_url')]",
+					"accountKey": {
+						"type": "SecureString",
+						"value": "[parameters('linkedservicedl_accountKey')]"
+					}
+				}
+			},
+			"dependsOn": []
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/DelimitedText1')]",
+			"type": "Microsoft.DataFactory/factories/datasets",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"linkedServiceName": {
+					"referenceName": "gitlinkedservice",
+					"type": "LinkedServiceReference"
+				},
+				"annotations": [],
+				"type": "DelimitedText",
+				"typeProperties": {
+					"location": {
+						"type": "HttpServerLocation",
+						"relativeUrl": "Viv-2000/adf/refs/heads/main/nasa.csv"
+					},
+					"columnDelimiter": ",",
+					"escapeChar": "\\",
+					"firstRowAsHeader": true,
+					"quoteChar": "\""
+				},
+				"schema": []
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/linkedServices/gitlinkedservice')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/DelimitedText2')]",
+			"type": "Microsoft.DataFactory/factories/datasets",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"linkedServiceName": {
+					"referenceName": "linkedservicedl",
+					"type": "LinkedServiceReference"
+				},
+				"annotations": [],
+				"type": "DelimitedText",
+				"typeProperties": {
+					"location": {
+						"type": "AzureBlobFSLocation",
+						"folderPath": "csvfiles",
+						"fileSystem": "source"
+					},
+					"columnDelimiter": ",",
+					"escapeChar": "\\",
+					"firstRowAsHeader": true,
+					"quoteChar": "\""
+				},
+				"schema": []
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/linkedServices/linkedservicedl')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/DelimitedText3')]",
+			"type": "Microsoft.DataFactory/factories/datasets",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"linkedServiceName": {
+					"referenceName": "linkedservicedl",
+					"type": "LinkedServiceReference"
+				},
+				"annotations": [],
+				"type": "DelimitedText",
+				"typeProperties": {
+					"location": {
+						"type": "AzureBlobFSLocation",
+						"fileName": "nasa.csv",
+						"folderPath": "csvfiles",
+						"fileSystem": "source"
+					},
+					"columnDelimiter": ",",
+					"escapeChar": "\\",
+					"firstRowAsHeader": true,
+					"quoteChar": "\""
+				},
+				"schema": []
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/linkedServices/linkedservicedl')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/DelimitedText4')]",
+			"type": "Microsoft.DataFactory/factories/datasets",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"linkedServiceName": {
+					"referenceName": "linkedservicedl",
+					"type": "LinkedServiceReference"
+				},
+				"annotations": [],
+				"type": "DelimitedText",
+				"typeProperties": {
+					"location": {
+						"type": "AzureBlobFSLocation",
+						"folderPath": "csvfiles",
+						"fileSystem": "source"
+					},
+					"columnDelimiter": ",",
+					"escapeChar": "\\",
+					"firstRowAsHeader": true,
+					"quoteChar": "\""
+				},
+				"schema": []
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/linkedServices/linkedservicedl')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/DelimitedText5')]",
+			"type": "Microsoft.DataFactory/factories/datasets",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"linkedServiceName": {
+					"referenceName": "linkedservicedl",
+					"type": "LinkedServiceReference"
+				},
+				"annotations": [],
+				"type": "DelimitedText",
+				"typeProperties": {
+					"location": {
+						"type": "AzureBlobFSLocation",
+						"fileName": "nasa.csv",
+						"folderPath": "csvfiles",
+						"fileSystem": "destination"
+					},
+					"columnDelimiter": ",",
+					"escapeChar": "\\",
+					"firstRowAsHeader": true,
+					"quoteChar": "\""
+				},
+				"schema": []
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/linkedServices/linkedservicedl')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/dest_csvfile_nasa')]",
+			"type": "Microsoft.DataFactory/factories/datasets",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"linkedServiceName": {
+					"referenceName": "linkedservicedl",
+					"type": "LinkedServiceReference"
+				},
+				"annotations": [],
+				"type": "DelimitedText",
+				"typeProperties": {
+					"location": {
+						"type": "AzureBlobFSLocation",
+						"fileName": "nasa.csv",
+						"folderPath": "csvfiles",
+						"fileSystem": "destination"
+					},
+					"columnDelimiter": ",",
+					"escapeChar": "\\",
+					"firstRowAsHeader": true,
+					"quoteChar": "\""
+				},
+				"schema": []
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/linkedServices/linkedservicedl')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/dest_csvfiles_nasa')]",
+			"type": "Microsoft.DataFactory/factories/datasets",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"linkedServiceName": {
+					"referenceName": "linkedservicedl",
+					"type": "LinkedServiceReference"
+				},
+				"annotations": [],
+				"type": "DelimitedText",
+				"typeProperties": {
+					"location": {
+						"type": "AzureBlobFSLocation",
+						"fileName": "nasa.csv",
+						"folderPath": "csvfiles",
+						"fileSystem": "destination"
+					},
+					"columnDelimiter": ",",
+					"escapeChar": "\\",
+					"firstRowAsHeader": true,
+					"quoteChar": "\""
+				},
+				"schema": [
+					{
+						"name": "Neo Reference ID",
+						"type": "String"
+					},
+					{
+						"name": "Name",
+						"type": "String"
+					},
+					{
+						"name": "Absolute Magnitude",
+						"type": "String"
+					},
+					{
+						"name": "Est Dia in KM(min)",
+						"type": "String"
+					},
+					{
+						"name": "Est Dia in KM(max)",
+						"type": "String"
+					},
+					{
+						"name": "Est Dia in M(min)",
+						"type": "String"
+					},
+					{
+						"name": "Est Dia in M(max)",
+						"type": "String"
+					},
+					{
+						"name": "Est Dia in Miles(min)",
+						"type": "String"
+					},
+					{
+						"name": "Est Dia in Miles(max)",
+						"type": "String"
+					},
+					{
+						"name": "Est Dia in Feet(min)",
+						"type": "String"
+					},
+					{
+						"name": "Est Dia in Feet(max)",
+						"type": "String"
+					},
+					{
+						"name": "Close Approach Date",
+						"type": "String"
+					},
+					{
+						"name": "Epoch Date Close Approach",
+						"type": "String"
+					},
+					{
+						"name": "Relative Velocity km per sec",
+						"type": "String"
+					},
+					{
+						"name": "Relative Velocity km per hr",
+						"type": "String"
+					},
+					{
+						"name": "Miles per hour",
+						"type": "String"
+					},
+					{
+						"name": "Miss Dist.(Astronomical)",
+						"type": "String"
+					},
+					{
+						"name": "Miss Dist.(lunar)",
+						"type": "String"
+					},
+					{
+						"name": "Miss Dist.(kilometers)",
+						"type": "String"
+					},
+					{
+						"name": "Miss Dist.(miles)",
+						"type": "String"
+					},
+					{
+						"name": "Orbiting Body",
+						"type": "String"
+					},
+					{
+						"name": "Orbit ID",
+						"type": "String"
+					},
+					{
+						"name": "Orbit Determination Date",
+						"type": "String"
+					},
+					{
+						"name": "Orbit Uncertainity",
+						"type": "String"
+					},
+					{
+						"name": "Minimum Orbit Intersection",
+						"type": "String"
+					},
+					{
+						"name": "Jupiter Tisserand Invariant",
+						"type": "String"
+					},
+					{
+						"name": "Epoch Osculation",
+						"type": "String"
+					},
+					{
+						"name": "Eccentricity",
+						"type": "String"
+					},
+					{
+						"name": "Semi Major Axis",
+						"type": "String"
+					},
+					{
+						"name": "Inclination",
+						"type": "String"
+					},
+					{
+						"name": "Asc Node Longitude",
+						"type": "String"
+					},
+					{
+						"name": "Orbital Period",
+						"type": "String"
+					},
+					{
+						"name": "Perihelion Distance",
+						"type": "String"
+					},
+					{
+						"name": "Perihelion Arg",
+						"type": "String"
+					},
+					{
+						"name": "Aphelion Dist",
+						"type": "String"
+					},
+					{
+						"name": "Perihelion Time",
+						"type": "String"
+					},
+					{
+						"name": "Mean Anomaly",
+						"type": "String"
+					},
+					{
+						"name": "Mean Motion",
+						"type": "String"
+					},
+					{
+						"name": "Equinox",
+						"type": "String"
+					},
+					{
+						"name": "Hazardous",
+						"type": "String"
+					}
+				]
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/linkedServices/linkedservicedl')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/gitnasadata')]",
+			"type": "Microsoft.DataFactory/factories/datasets",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"linkedServiceName": {
+					"referenceName": "gitlinkedservice",
+					"type": "LinkedServiceReference"
+				},
+				"annotations": [],
+				"type": "DelimitedText",
+				"typeProperties": {
+					"location": {
+						"type": "HttpServerLocation",
+						"relativeUrl": "Viv-2000/adf/refs/heads/main/nasa.csv"
+					},
+					"columnDelimiter": ",",
+					"escapeChar": "\\",
+					"firstRowAsHeader": true,
+					"quoteChar": "\""
+				},
+				"schema": []
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/linkedServices/gitlinkedservice')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/parameterised_destination_csvfiles')]",
+			"type": "Microsoft.DataFactory/factories/datasets",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"linkedServiceName": {
+					"referenceName": "linkedservicedl",
+					"type": "LinkedServiceReference"
+				},
+				"parameters": {
+					"p_filename": {
+						"type": "string"
+					}
+				},
+				"annotations": [],
+				"type": "DelimitedText",
+				"typeProperties": {
+					"location": {
+						"type": "AzureBlobFSLocation",
+						"fileName": {
+							"value": "@dataset().p_filename",
+							"type": "Expression"
+						},
+						"folderPath": "csvfiles",
+						"fileSystem": "destination"
+					},
+					"columnDelimiter": ",",
+					"escapeChar": "\\",
+					"firstRowAsHeader": true,
+					"quoteChar": "\""
+				},
+				"schema": []
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/linkedServices/linkedservicedl')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/parameterized_source_csvfiles')]",
+			"type": "Microsoft.DataFactory/factories/datasets",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"linkedServiceName": {
+					"referenceName": "linkedservicedl",
+					"type": "LinkedServiceReference"
+				},
+				"parameters": {
+					"p_filename": {
+						"type": "string"
+					}
+				},
+				"annotations": [],
+				"type": "DelimitedText",
+				"typeProperties": {
+					"location": {
+						"type": "AzureBlobFSLocation",
+						"fileName": {
+							"value": "@dataset().p_filename",
+							"type": "Expression"
+						},
+						"folderPath": "csvfiles",
+						"fileSystem": "source"
+					},
+					"columnDelimiter": ",",
+					"escapeChar": "\\",
+					"firstRowAsHeader": true,
+					"quoteChar": "\""
+				},
+				"schema": []
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/linkedServices/linkedservicedl')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/reporting_csv_nasa')]",
+			"type": "Microsoft.DataFactory/factories/datasets",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"linkedServiceName": {
+					"referenceName": "linkedservicedl",
+					"type": "LinkedServiceReference"
+				},
+				"annotations": [],
+				"type": "DelimitedText",
+				"typeProperties": {
+					"location": {
+						"type": "AzureBlobFSLocation",
+						"fileName": "nasa.csv",
+						"folderPath": "csvfiles",
+						"fileSystem": "reporting"
+					},
+					"columnDelimiter": ",",
+					"escapeChar": "\\",
+					"firstRowAsHeader": true,
+					"quoteChar": "\""
+				},
+				"schema": []
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/linkedServices/linkedservicedl')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/sourcecsvfiles')]",
+			"type": "Microsoft.DataFactory/factories/datasets",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"linkedServiceName": {
+					"referenceName": "linkedservicedl",
+					"type": "LinkedServiceReference"
+				},
+				"annotations": [],
+				"type": "DelimitedText",
+				"typeProperties": {
+					"location": {
+						"type": "AzureBlobFSLocation",
+						"folderPath": "csvfiles",
+						"fileSystem": "source"
+					},
+					"columnDelimiter": ",",
+					"escapeChar": "\\",
+					"firstRowAsHeader": true,
+					"quoteChar": "\""
+				},
+				"schema": []
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/linkedServices/linkedservicedl')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/sourcenasadata')]",
+			"type": "Microsoft.DataFactory/factories/datasets",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"linkedServiceName": {
+					"referenceName": "linkedservicedl",
+					"type": "LinkedServiceReference"
+				},
+				"annotations": [],
+				"type": "DelimitedText",
+				"typeProperties": {
+					"location": {
+						"type": "AzureBlobFSLocation",
+						"fileName": "nasa.csv",
+						"folderPath": "csvfiles",
+						"fileSystem": "source"
+					},
+					"columnDelimiter": ",",
+					"escapeChar": "\\",
+					"firstRowAsHeader": true,
+					"quoteChar": "\""
+				},
+				"schema": []
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/linkedServices/linkedservicedl')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/1_http_copy_to_source')]",
+			"type": "Microsoft.DataFactory/factories/pipelines",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"activities": [
+					{
+						"name": "Copy data1",
+						"type": "Copy",
+						"dependsOn": [],
+						"policy": {
+							"timeout": "0.12:00:00",
+							"retry": 0,
+							"retryIntervalInSeconds": 30,
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"source": {
+								"type": "DelimitedTextSource",
+								"storeSettings": {
+									"type": "HttpReadSettings",
+									"requestMethod": "GET"
+								},
+								"formatSettings": {
+									"type": "DelimitedTextReadSettings"
+								}
+							},
+							"sink": {
+								"type": "DelimitedTextSink",
+								"storeSettings": {
+									"type": "AzureBlobFSWriteSettings"
+								},
+								"formatSettings": {
+									"type": "DelimitedTextWriteSettings",
+									"quoteAllText": true,
+									"fileExtension": ".txt"
+								}
+							},
+							"enableStaging": false,
+							"translator": {
+								"type": "TabularTranslator",
+								"typeConversion": true,
+								"typeConversionSettings": {
+									"allowDataTruncation": true,
+									"treatBooleanAsNumber": false
+								}
+							}
+						},
+						"inputs": [
+							{
+								"referenceName": "gitnasadata",
+								"type": "DatasetReference",
+								"parameters": {}
+							}
+						],
+						"outputs": [
+							{
+								"referenceName": "sourcenasadata",
+								"type": "DatasetReference",
+								"parameters": {}
+							}
+						]
+					}
+				],
+				"policy": {
+					"elapsedTimeMetric": {}
+				},
+				"annotations": [],
+				"lastPublishTime": "2026-09-23T06:22:30Z"
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/datasets/gitnasadata')]",
+				"[concat(variables('factoryId'), '/datasets/sourcenasadata')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/2_metadata_setvariable')]",
+			"type": "Microsoft.DataFactory/factories/pipelines",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"activities": [
+					{
+						"name": "Get Metadata for source csvs",
+						"type": "GetMetadata",
+						"dependsOn": [],
+						"policy": {
+							"timeout": "0.12:00:00",
+							"retry": 0,
+							"retryIntervalInSeconds": 30,
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"dataset": {
+								"referenceName": "sourcecsvfiles",
+								"type": "DatasetReference",
+								"parameters": {}
+							},
+							"fieldList": [
+								"childItems"
+							],
+							"storeSettings": {
+								"type": "AzureBlobFSReadSettings",
+								"recursive": true,
+								"enablePartitionDiscovery": false
+							},
+							"formatSettings": {
+								"type": "DelimitedTextReadSettings"
+							}
+						}
+					},
+					{
+						"name": "Set variable for childitems of metadata output",
+						"type": "SetVariable",
+						"dependsOn": [
+							{
+								"activity": "Get Metadata for source csvs",
+								"dependencyConditions": [
+									"Succeeded"
+								]
+							}
+						],
+						"policy": {
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"variableName": "file_names",
+							"value": {
+								"value": "@activity('Get Metadata for source csvs').output.childItems",
+								"type": "Expression"
+							}
+						}
+					}
+				],
+				"policy": {
+					"elapsedTimeMetric": {}
+				},
+				"variables": {
+					"file_names": {
+						"type": "Array"
+					}
+				},
+				"annotations": [],
+				"lastPublishTime": "2026-09-23T06:27:52Z"
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/datasets/sourcecsvfiles')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/3_for_if_copy')]",
+			"type": "Microsoft.DataFactory/factories/pipelines",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"activities": [
+					{
+						"name": "Set variable for childitems of metadata output",
+						"type": "SetVariable",
+						"dependsOn": [
+							{
+								"activity": "Get Metadata for source csvs",
+								"dependencyConditions": [
+									"Succeeded"
+								]
+							}
+						],
+						"policy": {
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"variableName": "file_names",
+							"value": {
+								"value": "@activity('Get Metadata for source csvs').output.childItems",
+								"type": "Expression"
+							}
+						}
+					},
+					{
+						"name": "ForEach file in var file_name-value",
+						"type": "ForEach",
+						"dependsOn": [
+							{
+								"activity": "Set variable for childitems of metadata output",
+								"dependencyConditions": [
+									"Succeeded"
+								]
+							}
+						],
+						"userProperties": [],
+						"typeProperties": {
+							"items": {
+								"value": "@variables('file_names')",
+								"type": "Expression"
+							},
+							"isSequential": true,
+							"activities": [
+								{
+									"name": "If Condition for checking file name starting with nasa",
+									"type": "IfCondition",
+									"dependsOn": [],
+									"userProperties": [],
+									"typeProperties": {
+										"expression": {
+											"value": "@startswith(item().name, 'nasa')",
+											"type": "Expression"
+										},
+										"ifTrueActivities": [
+											{
+												"name": "Copy data from source to destination",
+												"description": "the source is parameterised\ncreate a parameter for filename in source dataset\nuse item().name in the parameter value",
+												"type": "Copy",
+												"dependsOn": [],
+												"policy": {
+													"timeout": "0.12:00:00",
+													"retry": 0,
+													"retryIntervalInSeconds": 30,
+													"secureOutput": false,
+													"secureInput": false
+												},
+												"userProperties": [],
+												"typeProperties": {
+													"source": {
+														"type": "DelimitedTextSource",
+														"storeSettings": {
+															"type": "AzureBlobFSReadSettings",
+															"recursive": true,
+															"enablePartitionDiscovery": false
+														},
+														"formatSettings": {
+															"type": "DelimitedTextReadSettings"
+														}
+													},
+													"sink": {
+														"type": "DelimitedTextSink",
+														"storeSettings": {
+															"type": "AzureBlobFSWriteSettings"
+														},
+														"formatSettings": {
+															"type": "DelimitedTextWriteSettings",
+															"quoteAllText": true,
+															"fileExtension": ".txt"
+														}
+													},
+													"enableStaging": false,
+													"translator": {
+														"type": "TabularTranslator",
+														"typeConversion": true,
+														"typeConversionSettings": {
+															"allowDataTruncation": true,
+															"treatBooleanAsNumber": false
+														}
+													}
+												},
+												"inputs": [
+													{
+														"referenceName": "parameterized_source_csvfiles",
+														"type": "DatasetReference",
+														"parameters": {
+															"p_filename": "@item().name"
+														}
+													}
+												],
+												"outputs": [
+													{
+														"referenceName": "parameterised_destination_csvfiles",
+														"type": "DatasetReference",
+														"parameters": {
+															"p_filename": {
+																"value": "@item().name",
+																"type": "Expression"
+															}
+														}
+													}
+												]
+											}
+										]
+									}
+								}
+							]
+						}
+					},
+					{
+						"name": "Get Metadata for source csvs",
+						"type": "GetMetadata",
+						"dependsOn": [],
+						"policy": {
+							"timeout": "0.12:00:00",
+							"retry": 0,
+							"retryIntervalInSeconds": 30,
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"dataset": {
+								"referenceName": "sourcecsvfiles",
+								"type": "DatasetReference",
+								"parameters": {}
+							},
+							"fieldList": [
+								"childItems"
+							],
+							"storeSettings": {
+								"type": "AzureBlobFSReadSettings",
+								"recursive": true,
+								"enablePartitionDiscovery": false
+							},
+							"formatSettings": {
+								"type": "DelimitedTextReadSettings"
+							}
+						}
+					}
+				],
+				"policy": {
+					"elapsedTimeMetric": {}
+				},
+				"variables": {
+					"file_names": {
+						"type": "Array"
+					}
+				},
+				"annotations": [],
+				"lastPublishTime": "2026-09-23T07:01:23Z"
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/datasets/sourcecsvfiles')]",
+				"[concat(variables('factoryId'), '/datasets/parameterized_source_csvfiles')]",
+				"[concat(variables('factoryId'), '/datasets/parameterised_destination_csvfiles')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/dataflow1')]",
+			"type": "Microsoft.DataFactory/factories/dataflows",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"type": "MappingDataFlow",
+				"typeProperties": {
+					"sources": [
+						{
+							"dataset": {
+								"referenceName": "dest_csvfile_nasa",
+								"type": "DatasetReference"
+							},
+							"name": "destcsvnasa",
+							"description": "Import data from dest"
+						}
+					],
+					"sinks": [
+						{
+							"dataset": {
+								"referenceName": "reporting_csv_nasa",
+								"type": "DatasetReference"
+							},
+							"name": "sink1"
+						}
+					],
+					"transformations": [
+						{
+							"name": "select1"
+						},
+						{
+							"name": "split1"
+						},
+						{
+							"name": "derivedColumn1"
+						},
+						{
+							"name": "select2"
+						},
+						{
+							"name": "filter1",
+							"description": "orbit body and equinox filter"
+						},
+						{
+							"name": "nullcountaggregate"
+						},
+						{
+							"name": "select3",
+							"description": "dropping equinox and orbiting body column"
+						}
+					],
+					"scriptLines": [
+						"source(output(",
+						"          {Neo Reference ID} as integer,",
+						"          Name as integer,",
+						"          {Absolute Magnitude} as double,",
+						"          {Est Dia in KM(min)} as double,",
+						"          {Est Dia in KM(max)} as double,",
+						"          {Est Dia in M(min)} as double,",
+						"          {Est Dia in M(max)} as double,",
+						"          {Est Dia in Miles(min)} as double,",
+						"          {Est Dia in Miles(max)} as double,",
+						"          {Est Dia in Feet(min)} as double,",
+						"          {Est Dia in Feet(max)} as double,",
+						"          {Close Approach Date} as date,",
+						"          {Epoch Date Close Approach} as long,",
+						"          {Relative Velocity km per sec} as double,",
+						"          {Relative Velocity km per hr} as double,",
+						"          {Miles per hour} as double,",
+						"          {Miss Dist.(Astronomical)} as double,",
+						"          {Miss Dist.(lunar)} as double,",
+						"          {Miss Dist.(kilometers)} as double,",
+						"          {Miss Dist.(miles)} as double,",
+						"          {Orbiting Body} as string,",
+						"          {Orbit ID} as short,",
+						"          {Orbit Determination Date} as timestamp,",
+						"          {Orbit Uncertainity} as short,",
+						"          {Minimum Orbit Intersection} as double,",
+						"          {Jupiter Tisserand Invariant} as double,",
+						"          {Epoch Osculation} as double,",
+						"          Eccentricity as double,",
+						"          {Semi Major Axis} as double,",
+						"          Inclination as double,",
+						"          {Asc Node Longitude} as double,",
+						"          {Orbital Period} as double,",
+						"          {Perihelion Distance} as double,",
+						"          {Perihelion Arg} as double,",
+						"          {Aphelion Dist} as double,",
+						"          {Perihelion Time} as double,",
+						"          {Mean Anomaly} as double,",
+						"          {Mean Motion} as double,",
+						"          Equinox as string,",
+						"          Hazardous as boolean",
+						"     ),",
+						"     allowSchemaDrift: true,",
+						"     validateSchema: false,",
+						"     ignoreNoFilesFound: false) ~> destcsvnasa",
+						"destcsvnasa select(mapColumn(",
+						"          {Neo Reference ID},",
+						"          {Absolute Magnitude},",
+						"          {Est Dia in M(min)},",
+						"          {Est Dia in M(max)},",
+						"          {Close Approach Date},",
+						"          {Relative Velocity km per sec},",
+						"          {(kilometers)} = {Miss Dist.(kilometers)},",
+						"          {Orbiting Body},",
+						"          {Orbit Determination Date},",
+						"          {Orbit Uncertainity},",
+						"          {Minimum Orbit Intersection},",
+						"          {Jupiter Tisserand Invariant},",
+						"          {Epoch Osculation},",
+						"          Eccentricity,",
+						"          {Semi Major Axis},",
+						"          Inclination,",
+						"          {Asc Node Longitude},",
+						"          {Orbital Period},",
+						"          {Perihelion Distance},",
+						"          {Perihelion Arg},",
+						"          {Aphelion Dist},",
+						"          {Perihelion Time},",
+						"          {Mean Anomaly},",
+						"          {Mean Motion},",
+						"          Equinox,",
+						"          Hazardous",
+						"     ),",
+						"     skipDuplicateMapInputs: true,",
+						"     skipDuplicateMapOutputs: true) ~> select1",
+						"select1 split(Hazardous==true(),",
+						"     disjoint: false) ~> split1@(hazardous, nonhazardous)",
+						"split1@hazardous derive({Est Dia avg (M)} = ({Est Dia in M(min)}+{Est Dia in M(max)})/2) ~> derivedColumn1",
+						"derivedColumn1 select(mapColumn(",
+						"          {Neo Reference ID},",
+						"          {Absolute Magnitude},",
+						"          {Close Approach Date},",
+						"          {Relative Velocity km per sec},",
+						"          {(kilometers)},",
+						"          {Orbiting Body},",
+						"          {Orbit Determination Date},",
+						"          {Orbit Uncertainity},",
+						"          {Minimum Orbit Intersection},",
+						"          {Jupiter Tisserand Invariant},",
+						"          {Epoch Osculation},",
+						"          Eccentricity,",
+						"          {Semi Major Axis},",
+						"          Inclination,",
+						"          {Asc Node Longitude},",
+						"          {Orbital Period},",
+						"          {Perihelion Distance},",
+						"          {Perihelion Arg},",
+						"          {Aphelion Dist},",
+						"          {Perihelion Time},",
+						"          {Mean Anomaly},",
+						"          {Mean Motion},",
+						"          Equinox,",
+						"          Hazardous,",
+						"          {Est Dia avg (M)}",
+						"     ),",
+						"     skipDuplicateMapInputs: true,",
+						"     skipDuplicateMapOutputs: true) ~> select2",
+						"select2 filter(or({Orbiting Body}!='Earth' , {Equinox}!='J2000')) ~> filter1",
+						"select1 aggregate(each(match(true()), $$ = countIf(isNull($$)))) ~> nullcountaggregate",
+						"filter1 select(mapColumn(",
+						"          {Neo Reference ID},",
+						"          {Absolute Magnitude},",
+						"          {Close Approach Date},",
+						"          {Relative Velocity km per sec},",
+						"          {(kilometers)},",
+						"          {Orbit Determination Date},",
+						"          {Orbit Uncertainity},",
+						"          {Minimum Orbit Intersection},",
+						"          {Jupiter Tisserand Invariant},",
+						"          {Epoch Osculation},",
+						"          Eccentricity,",
+						"          {Semi Major Axis},",
+						"          Inclination,",
+						"          {Asc Node Longitude},",
+						"          {Orbital Period},",
+						"          {Perihelion Distance},",
+						"          {Perihelion Arg},",
+						"          {Aphelion Dist},",
+						"          {Perihelion Time},",
+						"          {Mean Anomaly},",
+						"          {Mean Motion},",
+						"          Equinox,",
+						"          Hazardous,",
+						"          {Est Dia avg (M)}",
+						"     ),",
+						"     skipDuplicateMapInputs: true,",
+						"     skipDuplicateMapOutputs: true) ~> select3",
+						"select3 sink(allowSchemaDrift: true,",
+						"     validateSchema: false,",
+						"     umask: 0022,",
+						"     preCommands: [],",
+						"     postCommands: [],",
+						"     skipDuplicateMapInputs: true,",
+						"     skipDuplicateMapOutputs: true) ~> sink1"
+					]
+				}
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/datasets/dest_csvfile_nasa')]",
+				"[concat(variables('factoryId'), '/datasets/reporting_csv_nasa')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/4_dataflow_dest_to_reporting')]",
+			"type": "Microsoft.DataFactory/factories/pipelines",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"activities": [
+					{
+						"name": "Data flow nasa",
+						"type": "ExecuteDataFlow",
+						"dependsOn": [],
+						"policy": {
+							"timeout": "0.12:00:00",
+							"retry": 0,
+							"retryIntervalInSeconds": 30,
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"dataflow": {
+								"referenceName": "dataflow1",
+								"type": "DataFlowReference",
+								"parameters": {},
+								"datasetParameters": {
+									"destcsvnasa": {},
+									"sink1": {}
+								}
+							},
+							"staging": {},
+							"compute": {
+								"coreCount": 8,
+								"computeType": "General"
+							},
+							"traceLevel": "Fine"
+						}
+					}
+				],
+				"policy": {
+					"elapsedTimeMetric": {}
+				},
+				"annotations": [],
+				"lastPublishTime": "2026-09-23T07:29:21Z"
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/dataflows/dataflow1')]"
+			]
+		}
+	]
+}
