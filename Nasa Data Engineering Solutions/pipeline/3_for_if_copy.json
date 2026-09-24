@@ -144,7 +144,7 @@
 				"userProperties": [],
 				"typeProperties": {
 					"dataset": {
-						"referenceName": "sourcecsvfilesfolder",
+						"referenceName": "sourcecsvs",
 						"type": "DatasetReference"
 					},
 					"fieldList": [
@@ -152,6 +152,7 @@
 					],
 					"storeSettings": {
 						"type": "AzureBlobFSReadSettings",
+						"recursive": true,
 						"enablePartitionDiscovery": false
 					},
 					"formatSettings": {
