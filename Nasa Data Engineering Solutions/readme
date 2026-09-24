@@ -1,1 +1,226 @@
+# NASA Near-Earth Object Pipeline — Azure Data Factory
+
+An event-driven, end-to-end data pipeline built in **Azure Data Factory (ADF)** and **Azure Data Lake Storage Gen2**. It ingests NASA asteroid data from an external HTTP source, lands it in a data lake, routes files dynamically by name, and transforms the data into a curated reporting dataset of **potentially hazardous asteroids** — with no manual steps once a file arrives, and safe to re-run at any time.
+
+---
+
+## Problem
+
+Raw data files often arrive from external systems at unpredictable times, with more columns than reporting needs. Loading, cleaning and handing them off by hand is slow and error-prone, and re-running a half-finished job can leave stale or duplicate files behind.
+
+This project automates that flow:
+
+- **Ingest** a public dataset from an external HTTP source into a data lake
+- **React automatically** when a new file lands, instead of polling or running jobs by hand
+- **Route and stage** only the files that match a naming rule, leaving everything else untouched
+- **Transform** the data into a smaller, analysis-ready dataset: hazardous asteroids only, with a derived metric and irrelevant columns removed
+- **Profile data quality** (null counts per column) during development
+- **Stay idempotent**: each stage cleans up after itself, so re-runs never leave stale files
+
+---
+
+## Solution overview
+
+```mermaid
+flowchart LR
+    GH["GitHub (raw CSV)<br/>nasa.csv"] -->|"Pipeline 1<br/>HTTP Copy"| SRC
+    UP["Manual upload"] -.-> SRC
+
+    subgraph ADLS["ADLS Gen2 — vivdatalake1"]
+        SRC["source/csvfiles<br/>landing"]
+        DST["destination/csvfiles<br/>staging"]
+        REP["reporting/csvfiles<br/>curated"]
+    end
+
+    SRC -.->|"BlobCreated event<br/>nasa.csv"| T{{"Storage event trigger"}}
+    T --> P5["Pipeline 5<br/>Orchestrator"]
+
+    P5 -->|"1. Pipeline 3<br/>route, copy, delete processed file"| DST
+    P5 -->|"2. Pipeline 4<br/>clear old report → Data Flow → clear staging"| REP
+```
+
+**Storage layout** (three containers, one per stage):
+
+| Container | Role | Cleaned up by |
+|---|---|---|
+| `source` | Landing zone. Files arrive from Pipeline 1 or a manual upload | Pipeline 3 deletes each file **after** it has been copied. Files that don't match the routing rule are left in place |
+| `destination` | Staging: files that passed routing | Pipeline 4 deletes the staged file only **after** the data flow succeeds |
+| `reporting` | Curated, analysis-ready output | Pipeline 4 clears old reports **before** writing the new one |
+
+---
+
+## Dataset
+
+NASA Near-Earth Object (asteroid) data: **4,687 records, 40 columns**, covering size estimates, close-approach velocity and miss distance, orbital parameters, and a `Hazardous` flag (**755 hazardous**, 3,932 non-hazardous).
+
+The curated output contains the **755 hazardous asteroids** with **23 columns**.
+
+---
+
+## Pipelines
+
+### Pipeline 1 — `1_http_copy_to_source` (ingestion)
+
+```
+Copy nasa.csv from GitHub (HTTP) ──► source/csvfiles/nasa.csv
+```
+
+- **HTTP linked service** (anonymous) reads the raw file from `raw.githubusercontent.com`
+- Writing the file raises a `BlobCreated` event, which starts the rest of the chain automatically
+
+### Pipeline 3 — `3_for_if_copy` (dynamic routing)
+
+```
+Get Metadata (childItems) → Set Variable (Array) → ForEach (sequential)
+                                                     └─ If @startswith(item().name, 'nasa')
+                                                          ├─ Copy  source → destination
+                                                          └─ Delete that file from source (on Success)
+```
+
+- **Get Metadata** lists every file in `source/csvfiles`
+- **ForEach** loops over the list, and **If Condition** routes only files whose name starts with `nasa`
+- **Parameterised datasets**: one source and one sink dataset handle any file name via `p_filename = @item().name`
+- Each file is deleted from the landing zone **only after its own copy succeeds**. Unmatched files are never touched, and a failed copy leaves the file in place for a retry
+
+### Pipeline 4 — `4_dataflow_dest_to_reporting` (transformation)
+
+```
+Delete old reports ──(on Completion)──► Data Flow (dataflow1) ──(on Success)──► Delete staged file
+```
+
+- Clearing `reporting/` first guarantees the output only ever holds the latest run. The **Completion** dependency means the data flow still runs when there is nothing to delete
+- The staged file in `destination/` is removed only after the transformation succeeds, so a failed run can be retried from staging
+
+### Pipeline 5 — `5_execute_pipelines` (orchestration)
+
+```
+Execute Pipeline 3 ──(on Success)──► Execute Pipeline 4
+```
+
+Both activities use **Wait on completion**, so transformation never starts until routing has finished.
+
+---
+
+## Mapping Data Flow — `dataflow1`
+
+```mermaid
+flowchart LR
+    A["Source<br/>destination/csvfiles/nasa.csv<br/>40 typed columns"] --> B["select1<br/>keep 24 relevant columns"]
+    B --> C{"split1<br/>Hazardous == true()"}
+    C -->|hazardous| D["derivedColumn1<br/>Est Dia avg (M)"]
+    C -->|nonhazardous| X["(not persisted)"]
+    D --> E["select2<br/>replace min/max with average"] --> H["Sink<br/>reporting/csvfiles/nasa.csv"]
+    B --> Q["nullcountaggregate<br/>null count per column"]
+```
+
+| Step | Transformation | Purpose |
+|---|---|---|
+| Source | Typed projection (integer, double, date, timestamp, boolean) | Enforces schema on read |
+| `select1` | Select | Reduces 40 columns to 24. Drops duplicate unit conversions (km, miles, feet) and constant columns (`Orbiting Body` = Earth and `Equinox` = J2000 for every record, verified by profiling before removal) |
+| `split1` | Conditional Split | Separates hazardous from non-hazardous asteroids |
+| `derivedColumn1` | Derived Column | `Est Dia avg (M) = (Est Dia in M(min) + Est Dia in M(max)) / 2` |
+| `select2` | Select | Replaces the min/max diameter pair with the single average (23 output columns) |
+| Sink | Delimited text | Writes the curated output to `reporting/csvfiles/nasa.csv` |
+| `nullcountaggregate` | Aggregate with column pattern (validation branch) | Data quality profiling: `countIf(isNull($$))` across every column, inspected in debug |
+
+---
+
+## Trigger
+
+| Trigger | Type | Runs | Behaviour |
+|---|---|---|---|
+| `mantrigger_storagebased` | Storage event (`BlobCreated`) | Pipeline 5 | Fires when `nasa.csv` lands in `source/csvfiles/`, whether it came from Pipeline 1 or a manual upload |
+
+Processing is fully **event-driven**: nothing polls the storage account, and nothing needs to be run by hand once a file arrives. Pipeline 1 can be run on demand, or put on a schedule trigger.
+
+---
+
+## Benefits
+
+| Benefit | How it's achieved |
+|---|---|
+| **No manual processing** | A file arriving in the landing zone starts routing and transformation automatically |
+| **Reliable re-runs** | Every stage cleans up after itself, and deletes only happen after the step before them succeeds |
+| **No data loss on failure** | Source files are deleted only after a successful copy; staged files only after a successful transformation |
+| **Selective processing** | Name-based routing processes only matching files and leaves others untouched |
+| **Reusable components** | Parameterised datasets handle any file name without new datasets |
+| **Smaller, focused output** | 40 columns → 23, and 4,687 rows → 755 hazardous asteroids, ready for analysis |
+| **Traceability** | All pipeline code is version-controlled in GitHub through ADF Git integration |
+
+---
+
+## Key techniques
+
+- **Metadata-driven file handling**: Get Metadata `childItems` → Set Variable (Array) → ForEach with `@item()`
+- **Parameterised datasets**: one dataset serves any file name via `@dataset().p_filename`
+- **Conditional control flow**: If Condition with expression functions (`startswith`)
+- **Idempotent, failure-safe clean-up**: Delete activities chained with **Success** and **Completion** dependencies
+- **Pipeline orchestration**: Execute Pipeline with *Wait on completion*
+- **Event-driven processing**: storage event trigger on Azure Event Grid, scoped by container, folder and file name
+- **Mapping Data Flows**: Select, Conditional Split, Derived Column, Aggregate with column patterns (`$$`)
+- **Data quality**: null profiling across all columns, and constant-column checks before dropping columns
+- **Source control**: ADF Git integration with GitHub (`main` collaboration branch, `adf_publish` for ARM templates)
+
+---
+
+## Challenges solved
+
+Real issues hit during the build, and how they were resolved:
+
+| Problem | Root cause | Fix |
+|---|---|---|
+| `EndpointUnsupportedAccountFeatures` from the ADLS Gen2 connector | Storage account had **hierarchical namespace disabled**, with soft delete and blob events turned on | Upgraded the account to Data Lake Gen2 (after disabling the incompatible data protection features) |
+| Folder disappeared when its last file was deleted, causing `PathNotFound` in Get Metadata | Without hierarchical namespace, folders are only virtual prefixes | Resolved by the Data Lake Gen2 upgrade: folders became real objects |
+| Storage trigger published events but never started the pipeline | Event Grid subscription prefix filter didn't match the real blob path | Scoped the trigger to `/source/blobs/csvfiles/`; confirmed with Event Grid *Published* vs *Matched* metrics |
+| Triggers ran in Debug but not in production | Triggers only use the **published** factory, not the saved Git version | Validated and published all resources; confirmed state in Live mode |
+| Clean-up deleted files that were never processed | A folder-level Delete removed every file in the landing zone | Moved the Delete inside the If Condition, so it removes only the file just copied, and only on success |
+| Delete activity could block the run when there was nothing to delete | Clean-up ran before any report existed | The next activity depends on **Completion** instead of Success |
+| HTTP source returned an HTML page instead of CSV | Base URL pointed at the GitHub web page, not the raw file | Base URL `https://raw.githubusercontent.com/` with a relative path to the file |
+| `length()` expects an array error in ForEach | ForEach items were given a single object (`[1]`) instead of the array | Passed the full array and referenced the current file with `@item().name` |
+| `array()` data type mismatch in a null filter | `columns()` mixes integer, double, date and string types | Used an Aggregate column pattern for per-column null counts |
+
+---
+
+## Repository structure
+
+```
+Nasa Data Engineering Solutions/
+├── pipeline/        # 1_http_copy_to_source, 3_for_if_copy, 4_dataflow_dest_to_reporting, 5_execute_pipelines
+├── dataflow/        # dataflow1 (Mapping Data Flow)
+├── dataset/         # parameterised and fixed datasets (HTTP, ADLS Gen2 delimited text, Binary)
+├── linkedService/   # gitlinkedservice (HTTP), linkedservicedl (ADLS Gen2)
+├── trigger/         # mantrigger_storagebased (storage event)
+├── factory/         # factory definition
+└── publish_config.json
+```
+
+No secrets are stored in this repository. Linked service credentials are held encrypted in the factory and are not committed to Git.
+
+---
+
+## How to reproduce
+
+1. Create an **ADLS Gen2** storage account with **hierarchical namespace enabled**, and containers `source`, `destination` and `reporting`.
+2. Create an **Azure Data Factory** and register the `Microsoft.EventGrid` resource provider on the subscription.
+3. In ADF Studio: **Manage → Git configuration** → connect this repository, set the root folder to `/Nasa Data Engineering Solutions`, collaboration branch `main`.
+4. Open `linkedservicedl`, point it at your storage account, re-enter credentials and **Test connection**.
+5. Update the storage account `scope` in `mantrigger_storagebased`, then **Publish all**.
+6. Run `1_http_copy_to_source` (or upload `nasa.csv` to `source/csvfiles/`) and watch Pipeline 5 run in **Monitor**.
+
+---
+
+## Future improvements
+
+- Persist the **non-hazardous** stream and the **null-count report** to their own sinks
+- Route rows that fail validation to a `rejected/` quarantine folder with a reason column
+- **Archive** processed files instead of deleting them
+- Move credentials to **Azure Key Vault** and use the factory's **managed identity** for storage access
+- Add failure **alerts** and **CI/CD** deployment with GitHub Actions
+- Extend into **Azure Databricks** with a Bronze / Silver / Gold Delta Lake medallion architecture
+
+---
+
+## Tech stack
+
+Azure Data Factory · Azure Data Lake Storage Gen2 · Mapping Data Flows · Azure Event Grid · GitHub (Git integration)
 
