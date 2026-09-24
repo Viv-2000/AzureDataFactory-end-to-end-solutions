@@ -3,7 +3,7 @@
 	"properties": {
 		"activities": [
 			{
-				"name": "Execute Pipeline 3 and 4",
+				"name": "Execute Pipeline 3",
 				"type": "ExecutePipeline",
 				"dependsOn": [],
 				"policy": {
@@ -23,7 +23,7 @@
 				"type": "ExecutePipeline",
 				"dependsOn": [
 					{
-						"activity": "Execute Pipeline 3 and 4",
+						"activity": "Execute Pipeline 3",
 						"dependencyConditions": [
 							"Succeeded"
 						]
