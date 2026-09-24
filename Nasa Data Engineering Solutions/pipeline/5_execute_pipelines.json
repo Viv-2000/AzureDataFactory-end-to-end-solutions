@@ -61,6 +61,10 @@
 				},
 				"userProperties": [],
 				"typeProperties": {
+					"dataset": {
+						"referenceName": "sourcecsvfilesfolder",
+						"type": "DatasetReference"
+					},
 					"enableLogging": false,
 					"storeSettings": {
 						"type": "AzureBlobFSReadSettings",
