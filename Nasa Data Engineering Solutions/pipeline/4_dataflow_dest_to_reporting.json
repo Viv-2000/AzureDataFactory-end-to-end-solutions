@@ -7,7 +7,7 @@
 				"type": "ExecuteDataFlow",
 				"dependsOn": [
 					{
-						"activity": "Delete1",
+						"activity": "Deletepastreports",
 						"dependencyConditions": [
 							"Completed"
 						]
@@ -34,7 +34,7 @@
 				}
 			},
 			{
-				"name": "Delete1",
+				"name": "Deletepastreports",
 				"type": "Delete",
 				"dependsOn": [],
 				"policy": {
@@ -48,6 +48,38 @@
 				"typeProperties": {
 					"dataset": {
 						"referenceName": "pastreports",
+						"type": "DatasetReference"
+					},
+					"enableLogging": false,
+					"storeSettings": {
+						"type": "AzureBlobFSReadSettings",
+						"recursive": true,
+						"enablePartitionDiscovery": false
+					}
+				}
+			},
+			{
+				"name": "Deletedestcsv",
+				"type": "Delete",
+				"dependsOn": [
+					{
+						"activity": "Data flow nasa",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"timeout": "0.12:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"dataset": {
+						"referenceName": "dest_csvfile_nasa",
 						"type": "DatasetReference"
 					},
 					"enableLogging": false,
