@@ -23,7 +23,7 @@
 				"type": "ExecutePipeline",
 				"dependsOn": [
 					{
-						"activity": "Execute Pipeline 3",
+						"activity": "Delete source files",
 						"dependencyConditions": [
 							"Succeeded"
 						]
@@ -46,7 +46,7 @@
 				"type": "Delete",
 				"dependsOn": [
 					{
-						"activity": "Execute Pipeline 4",
+						"activity": "Execute Pipeline 3",
 						"dependencyConditions": [
 							"Succeeded"
 						]
