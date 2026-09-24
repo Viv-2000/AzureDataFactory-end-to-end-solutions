@@ -308,14 +308,7 @@
 					{
 						"name": "Copy data1",
 						"type": "Copy",
-						"dependsOn": [
-							{
-								"activity": "Deletepastsourcecsvs",
-								"dependencyConditions": [
-									"Completed"
-								]
-							}
-						],
+						"dependsOn": [],
 						"policy": {
 							"timeout": "0.12:00:00",
 							"retry": 0,
@@ -370,32 +363,6 @@
 								"parameters": {}
 							}
 						]
-					},
-					{
-						"name": "Deletepastsourcecsvs",
-						"type": "Delete",
-						"dependsOn": [],
-						"policy": {
-							"timeout": "0.12:00:00",
-							"retry": 0,
-							"retryIntervalInSeconds": 30,
-							"secureOutput": false,
-							"secureInput": false
-						},
-						"userProperties": [],
-						"typeProperties": {
-							"dataset": {
-								"referenceName": "sourcecsvs",
-								"type": "DatasetReference",
-								"parameters": {}
-							},
-							"enableLogging": false,
-							"storeSettings": {
-								"type": "AzureBlobFSReadSettings",
-								"recursive": true,
-								"enablePartitionDiscovery": false
-							}
-						}
 					}
 				],
 				"policy": {
@@ -406,8 +373,7 @@
 			},
 			"dependsOn": [
 				"[concat(variables('factoryId'), '/datasets/gitnasadata')]",
-				"[concat(variables('factoryId'), '/datasets/sourcecsvnasa')]",
-				"[concat(variables('factoryId'), '/datasets/sourcecsvs')]"
+				"[concat(variables('factoryId'), '/datasets/sourcecsvnasa')]"
 			]
 		},
 		{
@@ -537,6 +503,44 @@
 														}
 													}
 												]
+											},
+											{
+												"name": "Deletesourcecsv",
+												"type": "Delete",
+												"dependsOn": [
+													{
+														"activity": "Copy data from source to destination",
+														"dependencyConditions": [
+															"Succeeded"
+														]
+													}
+												],
+												"policy": {
+													"timeout": "0.12:00:00",
+													"retry": 0,
+													"retryIntervalInSeconds": 30,
+													"secureOutput": false,
+													"secureInput": false
+												},
+												"userProperties": [],
+												"typeProperties": {
+													"dataset": {
+														"referenceName": "parameterized_source_csvfiles",
+														"type": "DatasetReference",
+														"parameters": {
+															"p_filename": {
+																"value": "@item().name",
+																"type": "Expression"
+															}
+														}
+													},
+													"enableLogging": false,
+													"storeSettings": {
+														"type": "AzureBlobFSReadSettings",
+														"recursive": true,
+														"enablePartitionDiscovery": false
+													}
+												}
 											}
 										]
 									}
@@ -572,39 +576,6 @@
 							},
 							"formatSettings": {
 								"type": "DelimitedTextReadSettings"
-							}
-						}
-					},
-					{
-						"name": "Deletesourcecsv",
-						"type": "Delete",
-						"dependsOn": [
-							{
-								"activity": "ForEach file in var file_name-value",
-								"dependencyConditions": [
-									"Succeeded"
-								]
-							}
-						],
-						"policy": {
-							"timeout": "0.12:00:00",
-							"retry": 0,
-							"retryIntervalInSeconds": 30,
-							"secureOutput": false,
-							"secureInput": false
-						},
-						"userProperties": [],
-						"typeProperties": {
-							"dataset": {
-								"referenceName": "sourcecsvs",
-								"type": "DatasetReference",
-								"parameters": {}
-							},
-							"enableLogging": false,
-							"storeSettings": {
-								"type": "AzureBlobFSReadSettings",
-								"recursive": true,
-								"enablePartitionDiscovery": false
 							}
 						}
 					}
