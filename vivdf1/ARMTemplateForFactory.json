@@ -440,7 +440,7 @@
 						"type": "ExecutePipeline",
 						"dependsOn": [
 							{
-								"activity": "Execute Pipeline 3",
+								"activity": "Delete source files",
 								"dependencyConditions": [
 									"Succeeded"
 								]
@@ -464,7 +464,7 @@
 						"type": "Delete",
 						"dependsOn": [
 							{
-								"activity": "Execute Pipeline 4",
+								"activity": "Execute Pipeline 3",
 								"dependencyConditions": [
 									"Succeeded"
 								]
@@ -754,6 +754,68 @@
 			"dependsOn": []
 		},
 		{
+			"name": "[concat(parameters('factoryName'), '/mantrigger_storagebased')]",
+			"type": "Microsoft.DataFactory/factories/triggers",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"annotations": [],
+				"runtimeState": "Started",
+				"pipelines": [
+					{
+						"pipelineReference": {
+							"referenceName": "5_execute_pipelines",
+							"type": "PipelineReference"
+						},
+						"parameters": {}
+					}
+				],
+				"type": "BlobEventsTrigger",
+				"typeProperties": {
+					"blobPathBeginsWith": "/source/blobs/csvfiles/",
+					"blobPathEndsWith": "nasa.csv",
+					"ignoreEmptyBlobs": true,
+					"scope": "[parameters('mantrigger_storagebased_properties_typeProperties_scope')]",
+					"events": [
+						"Microsoft.Storage.BlobCreated"
+					]
+				}
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/pipelines/5_execute_pipelines')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/testrun')]",
+			"type": "Microsoft.DataFactory/factories/triggers",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"annotations": [],
+				"runtimeState": "Started",
+				"pipelines": [
+					{
+						"pipelineReference": {
+							"referenceName": "1_http_copy_to_source",
+							"type": "PipelineReference"
+						},
+						"parameters": {}
+					}
+				],
+				"type": "ScheduleTrigger",
+				"typeProperties": {
+					"recurrence": {
+						"frequency": "Day",
+						"interval": 1,
+						"startTime": "2026-09-24T12:33:00",
+						"endTime": "2026-09-25T04:14:00",
+						"timeZone": "AUS Eastern Standard Time"
+					}
+				}
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/pipelines/1_http_copy_to_source')]"
+			]
+		},
+		{
 			"name": "[concat(parameters('factoryName'), '/dataflow1')]",
 			"type": "Microsoft.DataFactory/factories/dataflows",
 			"apiVersion": "2018-06-01",
@@ -955,37 +1017,6 @@
 			"dependsOn": [
 				"[concat(variables('factoryId'), '/datasets/dest_csvfile_nasa')]",
 				"[concat(variables('factoryId'), '/datasets/reporting_csv_nasa')]"
-			]
-		},
-		{
-			"name": "[concat(parameters('factoryName'), '/mantrigger_storagebased')]",
-			"type": "Microsoft.DataFactory/factories/triggers",
-			"apiVersion": "2018-06-01",
-			"properties": {
-				"annotations": [],
-				"runtimeState": "Started",
-				"pipelines": [
-					{
-						"pipelineReference": {
-							"referenceName": "5_execute_pipelines",
-							"type": "PipelineReference"
-						},
-						"parameters": {}
-					}
-				],
-				"type": "BlobEventsTrigger",
-				"typeProperties": {
-					"blobPathBeginsWith": "/source/blobs/csvfiles/",
-					"blobPathEndsWith": "nasa.csv",
-					"ignoreEmptyBlobs": true,
-					"scope": "[parameters('mantrigger_storagebased_properties_typeProperties_scope')]",
-					"events": [
-						"Microsoft.Storage.BlobCreated"
-					]
-				}
-			},
-			"dependsOn": [
-				"[concat(variables('factoryId'), '/pipelines/5_execute_pipelines')]"
 			]
 		}
 	]

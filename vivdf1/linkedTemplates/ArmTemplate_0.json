@@ -865,6 +865,37 @@
 			]
 		},
 		{
+			"name": "[concat(parameters('factoryName'), '/testrun')]",
+			"type": "Microsoft.DataFactory/factories/triggers",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"annotations": [],
+				"runtimeState": "Started",
+				"pipelines": [
+					{
+						"pipelineReference": {
+							"referenceName": "1_http_copy_to_source",
+							"type": "PipelineReference"
+						},
+						"parameters": {}
+					}
+				],
+				"type": "ScheduleTrigger",
+				"typeProperties": {
+					"recurrence": {
+						"frequency": "Day",
+						"interval": 1,
+						"startTime": "2026-09-24T12:33:00",
+						"endTime": "2026-09-25T04:14:00",
+						"timeZone": "AUS Eastern Standard Time"
+					}
+				}
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/pipelines/1_http_copy_to_source')]"
+			]
+		},
+		{
 			"name": "[concat(parameters('factoryName'), '/5_execute_pipelines')]",
 			"type": "Microsoft.DataFactory/factories/pipelines",
 			"apiVersion": "2018-06-01",
@@ -892,7 +923,7 @@
 						"type": "ExecutePipeline",
 						"dependsOn": [
 							{
-								"activity": "Execute Pipeline 3",
+								"activity": "Delete source files",
 								"dependencyConditions": [
 									"Succeeded"
 								]
@@ -916,7 +947,7 @@
 						"type": "Delete",
 						"dependsOn": [
 							{
-								"activity": "Execute Pipeline 4",
+								"activity": "Execute Pipeline 3",
 								"dependencyConditions": [
 									"Succeeded"
 								]
