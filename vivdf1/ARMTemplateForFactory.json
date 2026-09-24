@@ -106,83 +106,6 @@
 			]
 		},
 		{
-			"name": "[concat(parameters('factoryName'), '/2_metadata_setvariable')]",
-			"type": "Microsoft.DataFactory/factories/pipelines",
-			"apiVersion": "2018-06-01",
-			"properties": {
-				"activities": [
-					{
-						"name": "Get Metadata for source csvs",
-						"type": "GetMetadata",
-						"dependsOn": [],
-						"policy": {
-							"timeout": "0.12:00:00",
-							"retry": 0,
-							"retryIntervalInSeconds": 30,
-							"secureOutput": false,
-							"secureInput": false
-						},
-						"userProperties": [],
-						"typeProperties": {
-							"dataset": {
-								"referenceName": "sourcecsvfiles",
-								"type": "DatasetReference",
-								"parameters": {}
-							},
-							"fieldList": [
-								"childItems"
-							],
-							"storeSettings": {
-								"type": "AzureBlobFSReadSettings",
-								"recursive": true,
-								"enablePartitionDiscovery": false
-							},
-							"formatSettings": {
-								"type": "DelimitedTextReadSettings"
-							}
-						}
-					},
-					{
-						"name": "Set variable for childitems of metadata output",
-						"type": "SetVariable",
-						"dependsOn": [
-							{
-								"activity": "Get Metadata for source csvs",
-								"dependencyConditions": [
-									"Succeeded"
-								]
-							}
-						],
-						"policy": {
-							"secureOutput": false,
-							"secureInput": false
-						},
-						"userProperties": [],
-						"typeProperties": {
-							"variableName": "file_names",
-							"value": {
-								"value": "@activity('Get Metadata for source csvs').output.childItems",
-								"type": "Expression"
-							}
-						}
-					}
-				],
-				"policy": {
-					"elapsedTimeMetric": {}
-				},
-				"variables": {
-					"file_names": {
-						"type": "Array"
-					}
-				},
-				"annotations": [],
-				"lastPublishTime": "2026-09-23T06:27:52Z"
-			},
-			"dependsOn": [
-				"[concat(variables('factoryId'), '/datasets/sourcecsvfiles')]"
-			]
-		},
-		{
 			"name": "[concat(parameters('factoryName'), '/3_for_if_copy')]",
 			"type": "Microsoft.DataFactory/factories/pipelines",
 			"apiVersion": "2018-06-01",
@@ -330,7 +253,7 @@
 						"userProperties": [],
 						"typeProperties": {
 							"dataset": {
-								"referenceName": "sourcecsvfiles",
+								"referenceName": "sourcecsvfilesfolder",
 								"type": "DatasetReference",
 								"parameters": {}
 							},
@@ -360,7 +283,7 @@
 				"lastPublishTime": "2026-09-23T07:01:23Z"
 			},
 			"dependsOn": [
-				"[concat(variables('factoryId'), '/datasets/sourcecsvfiles')]",
+				"[concat(variables('factoryId'), '/datasets/sourcecsvfilesfolder')]",
 				"[concat(variables('factoryId'), '/datasets/parameterized_source_csvfiles')]",
 				"[concat(variables('factoryId'), '/datasets/parameterised_destination_csvfiles')]"
 			]
@@ -480,7 +403,7 @@
 						"userProperties": [],
 						"typeProperties": {
 							"dataset": {
-								"referenceName": "sourcecsvfiles",
+								"referenceName": "sourcecsvfilesfolder",
 								"type": "DatasetReference",
 								"parameters": {}
 							},
@@ -502,7 +425,7 @@
 			"dependsOn": [
 				"[concat(variables('factoryId'), '/pipelines/3_for_if_copy')]",
 				"[concat(variables('factoryId'), '/pipelines/4_dataflow_dest_to_reporting')]",
-				"[concat(variables('factoryId'), '/datasets/sourcecsvfiles')]"
+				"[concat(variables('factoryId'), '/datasets/sourcecsvfilesfolder')]"
 			]
 		},
 		{
@@ -665,7 +588,7 @@
 			]
 		},
 		{
-			"name": "[concat(parameters('factoryName'), '/sourcecsvfiles')]",
+			"name": "[concat(parameters('factoryName'), '/sourcecsvfilesfolder')]",
 			"type": "Microsoft.DataFactory/factories/datasets",
 			"apiVersion": "2018-06-01",
 			"properties": {
