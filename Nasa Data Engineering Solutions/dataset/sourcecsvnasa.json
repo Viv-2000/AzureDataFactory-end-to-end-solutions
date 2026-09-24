@@ -1,0 +1,19 @@
+{
+	"name": "sourcecsvnasa",
+	"properties": {
+		"linkedServiceName": {
+			"referenceName": "linkedservicedl",
+			"type": "LinkedServiceReference"
+		},
+		"annotations": [],
+		"type": "Binary",
+		"typeProperties": {
+			"location": {
+				"type": "AzureBlobFSLocation",
+				"fileName": "nasa.csv",
+				"folderPath": "csvfiles",
+				"fileSystem": "source"
+			}
+		}
+	}
+}
