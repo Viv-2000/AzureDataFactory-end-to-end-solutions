@@ -23,7 +23,7 @@
 				"type": "ExecutePipeline",
 				"dependsOn": [
 					{
-						"activity": "deletesourcecsvnasa",
+						"activity": "Execute Pipeline 3",
 						"dependencyConditions": [
 							"Succeeded"
 						]
@@ -42,11 +42,11 @@
 				}
 			},
 			{
-				"name": "deletesourcecsvnasa",
+				"name": "Deletedestcsv",
 				"type": "Delete",
 				"dependsOn": [
 					{
-						"activity": "Execute Pipeline 3",
+						"activity": "Execute Pipeline 4",
 						"dependencyConditions": [
 							"Succeeded"
 						]
@@ -61,16 +61,7 @@
 				},
 				"userProperties": [],
 				"typeProperties": {
-					"dataset": {
-						"referenceName": "sourcecsvnasa",
-						"type": "DatasetReference"
-					},
-					"enableLogging": false,
-					"storeSettings": {
-						"type": "AzureBlobFSReadSettings",
-						"recursive": true,
-						"enablePartitionDiscovery": false
-					}
+					"enableLogging": false
 				}
 			}
 		],
