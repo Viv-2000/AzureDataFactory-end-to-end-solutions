@@ -87,7 +87,7 @@
 						],
 						"outputs": [
 							{
-								"referenceName": "sourcenasadata",
+								"referenceName": "sourcecsvnasa",
 								"type": "DatasetReference",
 								"parameters": {}
 							}
@@ -102,7 +102,7 @@
 			},
 			"dependsOn": [
 				"[concat(variables('factoryId'), '/datasets/gitnasadata')]",
-				"[concat(variables('factoryId'), '/datasets/sourcenasadata')]"
+				"[concat(variables('factoryId'), '/datasets/sourcecsvnasa')]"
 			]
 		},
 		{
@@ -269,6 +269,39 @@
 								"type": "DelimitedTextReadSettings"
 							}
 						}
+					},
+					{
+						"name": "Deletesourcecsv",
+						"type": "Delete",
+						"dependsOn": [
+							{
+								"activity": "ForEach file in var file_name-value",
+								"dependencyConditions": [
+									"Succeeded"
+								]
+							}
+						],
+						"policy": {
+							"timeout": "0.12:00:00",
+							"retry": 0,
+							"retryIntervalInSeconds": 30,
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"dataset": {
+								"referenceName": "sourcecsvs",
+								"type": "DatasetReference",
+								"parameters": {}
+							},
+							"enableLogging": false,
+							"storeSettings": {
+								"type": "AzureBlobFSReadSettings",
+								"recursive": true,
+								"enablePartitionDiscovery": false
+							}
+						}
 					}
 				],
 				"policy": {
@@ -299,7 +332,7 @@
 						"type": "ExecuteDataFlow",
 						"dependsOn": [
 							{
-								"activity": "Delete1",
+								"activity": "Deletepastreports",
 								"dependencyConditions": [
 									"Completed"
 								]
@@ -332,7 +365,7 @@
 						}
 					},
 					{
-						"name": "Delete1",
+						"name": "Deletepastreports",
 						"type": "Delete",
 						"dependsOn": [],
 						"policy": {
@@ -356,6 +389,39 @@
 								"enablePartitionDiscovery": false
 							}
 						}
+					},
+					{
+						"name": "Deletedestcsv",
+						"type": "Delete",
+						"dependsOn": [
+							{
+								"activity": "Data flow nasa",
+								"dependencyConditions": [
+									"Succeeded"
+								]
+							}
+						],
+						"policy": {
+							"timeout": "0.12:00:00",
+							"retry": 0,
+							"retryIntervalInSeconds": 30,
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"dataset": {
+								"referenceName": "dest_csvfile_nasa",
+								"type": "DatasetReference",
+								"parameters": {}
+							},
+							"enableLogging": false,
+							"storeSettings": {
+								"type": "AzureBlobFSReadSettings",
+								"recursive": true,
+								"enablePartitionDiscovery": false
+							}
+						}
 					}
 				],
 				"policy": {
@@ -366,7 +432,8 @@
 			},
 			"dependsOn": [
 				"[concat(variables('factoryId'), '/dataflows/dataflow1')]",
-				"[concat(variables('factoryId'), '/datasets/pastreports')]"
+				"[concat(variables('factoryId'), '/datasets/pastreports')]",
+				"[concat(variables('factoryId'), '/datasets/dest_csvfile_nasa')]"
 			]
 		},
 		{
@@ -397,7 +464,7 @@
 						"type": "ExecutePipeline",
 						"dependsOn": [
 							{
-								"activity": "deletesourcecsvnasa",
+								"activity": "Execute Pipeline 3",
 								"dependencyConditions": [
 									"Succeeded"
 								]
@@ -415,39 +482,6 @@
 							"waitOnCompletion": true,
 							"parameters": {}
 						}
-					},
-					{
-						"name": "deletesourcecsvnasa",
-						"type": "Delete",
-						"dependsOn": [
-							{
-								"activity": "Execute Pipeline 3",
-								"dependencyConditions": [
-									"Succeeded"
-								]
-							}
-						],
-						"policy": {
-							"timeout": "0.12:00:00",
-							"retry": 0,
-							"retryIntervalInSeconds": 30,
-							"secureOutput": false,
-							"secureInput": false
-						},
-						"userProperties": [],
-						"typeProperties": {
-							"dataset": {
-								"referenceName": "sourcecsvnasa",
-								"type": "DatasetReference",
-								"parameters": {}
-							},
-							"enableLogging": false,
-							"storeSettings": {
-								"type": "AzureBlobFSReadSettings",
-								"recursive": true,
-								"enablePartitionDiscovery": false
-							}
-						}
 					}
 				],
 				"policy": {
@@ -458,8 +492,7 @@
 			},
 			"dependsOn": [
 				"[concat(variables('factoryId'), '/pipelines/3_for_if_copy')]",
-				"[concat(variables('factoryId'), '/pipelines/4_dataflow_dest_to_reporting')]",
-				"[concat(variables('factoryId'), '/datasets/sourcecsvnasa')]"
+				"[concat(variables('factoryId'), '/pipelines/4_dataflow_dest_to_reporting')]"
 			]
 		},
 		{
@@ -645,7 +678,7 @@
 			]
 		},
 		{
-			"name": "[concat(parameters('factoryName'), '/sourcecsvfilesfolder')]",
+			"name": "[concat(parameters('factoryName'), '/sourcecsvnasa')]",
 			"type": "Microsoft.DataFactory/factories/datasets",
 			"apiVersion": "2018-06-01",
 			"properties": {
@@ -658,6 +691,7 @@
 				"typeProperties": {
 					"location": {
 						"type": "AzureBlobFSLocation",
+						"fileName": "nasa.csv",
 						"folderPath": "csvfiles",
 						"fileSystem": "source"
 					},
@@ -667,30 +701,6 @@
 					"quoteChar": "\""
 				},
 				"schema": []
-			},
-			"dependsOn": [
-				"[concat(variables('factoryId'), '/linkedServices/linkedservicedl')]"
-			]
-		},
-		{
-			"name": "[concat(parameters('factoryName'), '/sourcecsvnasa')]",
-			"type": "Microsoft.DataFactory/factories/datasets",
-			"apiVersion": "2018-06-01",
-			"properties": {
-				"linkedServiceName": {
-					"referenceName": "linkedservicedl",
-					"type": "LinkedServiceReference"
-				},
-				"annotations": [],
-				"type": "Binary",
-				"typeProperties": {
-					"location": {
-						"type": "AzureBlobFSLocation",
-						"fileName": "nasa.csv",
-						"folderPath": "csvfiles",
-						"fileSystem": "source"
-					}
-				}
 			},
 			"dependsOn": [
 				"[concat(variables('factoryId'), '/linkedServices/linkedservicedl')]"
@@ -710,35 +720,6 @@
 				"typeProperties": {
 					"location": {
 						"type": "AzureBlobFSLocation",
-						"folderPath": "csvfiles",
-						"fileSystem": "source"
-					},
-					"columnDelimiter": ",",
-					"escapeChar": "\\",
-					"firstRowAsHeader": true,
-					"quoteChar": "\""
-				},
-				"schema": []
-			},
-			"dependsOn": [
-				"[concat(variables('factoryId'), '/linkedServices/linkedservicedl')]"
-			]
-		},
-		{
-			"name": "[concat(parameters('factoryName'), '/sourcenasadata')]",
-			"type": "Microsoft.DataFactory/factories/datasets",
-			"apiVersion": "2018-06-01",
-			"properties": {
-				"linkedServiceName": {
-					"referenceName": "linkedservicedl",
-					"type": "LinkedServiceReference"
-				},
-				"annotations": [],
-				"type": "DelimitedText",
-				"typeProperties": {
-					"location": {
-						"type": "AzureBlobFSLocation",
-						"fileName": "nasa.csv",
 						"folderPath": "csvfiles",
 						"fileSystem": "source"
 					},
