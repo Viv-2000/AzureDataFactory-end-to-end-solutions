@@ -191,6 +191,29 @@
 			]
 		},
 		{
+			"name": "[concat(parameters('factoryName'), '/pastreports')]",
+			"type": "Microsoft.DataFactory/factories/datasets",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"linkedServiceName": {
+					"referenceName": "linkedservicedl",
+					"type": "LinkedServiceReference"
+				},
+				"annotations": [],
+				"type": "Binary",
+				"typeProperties": {
+					"location": {
+						"type": "AzureBlobFSLocation",
+						"folderPath": "csvfiles",
+						"fileSystem": "reporting"
+					}
+				}
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/linkedServices/linkedservicedl')]"
+			]
+		},
+		{
 			"name": "[concat(parameters('factoryName'), '/reporting_csv_nasa')]",
 			"type": "Microsoft.DataFactory/factories/datasets",
 			"apiVersion": "2018-06-01",
@@ -760,7 +783,14 @@
 					{
 						"name": "Data flow nasa",
 						"type": "ExecuteDataFlow",
-						"dependsOn": [],
+						"dependsOn": [
+							{
+								"activity": "Delete1",
+								"dependencyConditions": [
+									"Completed"
+								]
+							}
+						],
 						"policy": {
 							"timeout": "0.12:00:00",
 							"retry": 0,
@@ -786,6 +816,32 @@
 							},
 							"traceLevel": "Fine"
 						}
+					},
+					{
+						"name": "Delete1",
+						"type": "Delete",
+						"dependsOn": [],
+						"policy": {
+							"timeout": "0.12:00:00",
+							"retry": 0,
+							"retryIntervalInSeconds": 30,
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"dataset": {
+								"referenceName": "pastreports",
+								"type": "DatasetReference",
+								"parameters": {}
+							},
+							"enableLogging": false,
+							"storeSettings": {
+								"type": "AzureBlobFSReadSettings",
+								"recursive": true,
+								"enablePartitionDiscovery": false
+							}
+						}
 					}
 				],
 				"policy": {
@@ -795,7 +851,8 @@
 				"lastPublishTime": "2026-09-23T07:29:21Z"
 			},
 			"dependsOn": [
-				"[concat(variables('factoryId'), '/dataflows/dataflow1')]"
+				"[concat(variables('factoryId'), '/dataflows/dataflow1')]",
+				"[concat(variables('factoryId'), '/datasets/pastreports')]"
 			]
 		},
 		{
