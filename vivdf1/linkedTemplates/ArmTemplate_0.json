@@ -308,7 +308,14 @@
 					{
 						"name": "Copy data1",
 						"type": "Copy",
-						"dependsOn": [],
+						"dependsOn": [
+							{
+								"activity": "Deletepastsourcecsvs",
+								"dependencyConditions": [
+									"Completed"
+								]
+							}
+						],
 						"policy": {
 							"timeout": "0.12:00:00",
 							"retry": 0,
@@ -363,6 +370,32 @@
 								"parameters": {}
 							}
 						]
+					},
+					{
+						"name": "Deletepastsourcecsvs",
+						"type": "Delete",
+						"dependsOn": [],
+						"policy": {
+							"timeout": "0.12:00:00",
+							"retry": 0,
+							"retryIntervalInSeconds": 30,
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"dataset": {
+								"referenceName": "sourcecsvs",
+								"type": "DatasetReference",
+								"parameters": {}
+							},
+							"enableLogging": false,
+							"storeSettings": {
+								"type": "AzureBlobFSReadSettings",
+								"recursive": true,
+								"enablePartitionDiscovery": false
+							}
+						}
 					}
 				],
 				"policy": {
@@ -373,7 +406,8 @@
 			},
 			"dependsOn": [
 				"[concat(variables('factoryId'), '/datasets/gitnasadata')]",
-				"[concat(variables('factoryId'), '/datasets/sourcecsvnasa')]"
+				"[concat(variables('factoryId'), '/datasets/sourcecsvnasa')]",
+				"[concat(variables('factoryId'), '/datasets/sourcecsvs')]"
 			]
 		},
 		{
