@@ -15,7 +15,7 @@
 						"referenceName": "3_for_if_copy",
 						"type": "PipelineReference"
 					},
-					"waitOnCompletion": false
+					"waitOnCompletion": true
 				}
 			},
 			{
@@ -38,7 +38,7 @@
 						"referenceName": "4_dataflow_dest_to_reporting",
 						"type": "PipelineReference"
 					},
-					"waitOnCompletion": false
+					"waitOnCompletion": true
 				}
 			},
 			{
